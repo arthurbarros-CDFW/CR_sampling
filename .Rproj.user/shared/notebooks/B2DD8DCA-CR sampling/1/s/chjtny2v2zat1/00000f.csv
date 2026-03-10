@@ -1,0 +1,10 @@
+"0","grid.arrange(p1,p2, ncol = 2,
+             top = textGrob(
+    ""Age-Related Patterns in Natural Recruitment\nComparison of count and proportion metrics with 95% CI"",
+    gp = gpar(fontsize = c(16, 12), fontface = c(""bold"", ""italic"")),
+    lineheight = 1.5
+  ))
+"
+"2","Error in textGrob(""Age-Related Patterns in Natural Recruitment\nComparison of count and proportion metrics with 95% CI"",  : 
+  could not find function ""textGrob""
+"

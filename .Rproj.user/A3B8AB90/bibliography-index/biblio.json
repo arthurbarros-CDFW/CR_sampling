@@ -1,0 +1,52 @@
+{
+    "sources": [
+        {
+            "DOI": "10.3354/meps14446",
+            "ISSN": "16161599",
+            "abstract": "Maturation schedules shape the age structure of a population and influence productivity and exposure to fishing. Fish cultivated and raised in artificial environments such as hatcheries may mature at different ages compared to their natural-origin counterparts. We evaluated whether endangered Sacramento River winter-run Chinook salmon Oncorhynchus tshawytscha produced in a conservation hatchery had different maturation schedules compared to naturalorigin fish, and how any differences affected their exposure to, and impact from, the ocean salmon fishery. Using coded-wire tags collected from hatchery fish in the ocean and in-river fisheries and on the spawning grounds, and scales collected from natural-origin spawner carcasses, we reconstructed the life history of hatchery and natural-origin cohorts from 2002-2015 brood years. Hatchery fish had similar age-2 maturation rates but higher age-3 maturation rates compared to natural-origin fish, resulting in fewer age-4 individuals and an overall more truncated age structure. Because natural-origin winter-run Chinook salmon were more likely to remain at sea until age 4, they were exposed to fishing for an additional year and experienced greater reduction in escapement. Compared to natural-origin males, hatchery-origin males were much less likely to return at an older age, possibly because sexual selection that is occurring on the spawning grounds is not occurring to the same extent in the hatchery. Identifying how reproductive maturation differs across sources, sex, and life histories is critical to understanding how fisheries can disproportionately impact subsets of a population and affect its long-term population dynamics and sustainability.",
+            "author": [
+                {
+                    "family": "Chen",
+                    "given": "Emily K."
+                },
+                {
+                    "family": "Satterthwaite",
+                    "given": "William H."
+                },
+                {
+                    "family": "Kormos",
+                    "given": "Brett J."
+                },
+                {
+                    "family": "Johnson",
+                    "given": "Rachel C."
+                },
+                {
+                    "family": "Phillis",
+                    "given": "Corey C."
+                },
+                {
+                    "family": "Carlson",
+                    "given": "Stephanie M."
+                }
+            ],
+            "container-title": "Marine Ecology Progress Series",
+            "id": "Chen2023",
+            "issued": {
+                "date-parts": [
+                    [
+                        2023,
+                        11
+                    ]
+                ]
+            },
+            "keyword": "Age at maturity,Fishing impact,Maturation,Oncorhynchus tshawytscha,Sacramento River,Sexual selection,Winter-run",
+            "page": "37-55",
+            "publisher": "Inter-Research",
+            "title": "Age structure of natural versus hatchery-origin endangered chinook salmon and implications for fisheries management in california",
+            "type": "article-journal",
+            "volume": "723"
+        }
+    ],
+    "project_biblios": []
+}

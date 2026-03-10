@@ -1,0 +1,4 @@
+"0","#| message: false"
+"0","#| warning: false"
+"0","sim_stats<-sim_summary_stats(data=scale_results)"
+"0","head(sim_stats)"

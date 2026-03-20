@@ -1,6 +1,79 @@
 {
     "sources": [
         {
+            "author": [
+                {
+                    "family": "O’farrell",
+                    "given": "Michael R"
+                },
+                {
+                    "family": "Mohr",
+                    "given": "Michael S"
+                },
+                {
+                    "family": "Palmer-Zwahlen",
+                    "given": "Melodie L"
+                },
+                {
+                    "family": "Grover",
+                    "given": "Allen M"
+                }
+            ],
+            "id": "Ofarrell2013",
+            "issued": {
+                "date-parts": [
+                    [
+                        2013
+                    ]
+                ]
+            },
+            "title": "NOAA technical memorandum NMFS THE SACRAMENTO INDEX (SI)",
+            "type": "report"
+        },
+        {
+            "author": [
+                {
+                    "family": "Chen",
+                    "given": "Emily"
+                },
+                {
+                    "family": "Satterthwaite",
+                    "given": "William H."
+                },
+                {
+                    "family": "O’Farrell",
+                    "given": "Michael R."
+                },
+                {
+                    "family": "Carlson",
+                    "given": "Stephanie M."
+                }
+            ],
+            "container-title": "Pacific Fishery Management Council",
+            "id": "Chen2024",
+            "issued": {
+                "date-parts": [
+                    [
+                        2024,
+                        9
+                    ]
+                ]
+            },
+            "title": "Cohort reconstruction for sacramento river fall chinook salmon and comparison with the sacramento index",
+            "type": "article-journal"
+        },
+        {
+            "author": [
+                {
+                    "family": "Chen",
+                    "given": "Emily"
+                }
+            ],
+            "id": "Chen2020",
+            "title": "Sacramento river fall chinook cohort reconstruction",
+            "type": "report"
+        },
+        {
             "DOI": "10.3354/meps14446",
             "ISSN": "16161599",
             "abstract": "Maturation schedules shape the age structure of a population and influence productivity and exposure to fishing. Fish cultivated and raised in artificial environments such as hatcheries may mature at different ages compared to their natural-origin counterparts. We evaluated whether endangered Sacramento River winter-run Chinook salmon Oncorhynchus tshawytscha produced in a conservation hatchery had different maturation schedules compared to naturalorigin fish, and how any differences affected their exposure to, and impact from, the ocean salmon fishery. Using coded-wire tags collected from hatchery fish in the ocean and in-river fisheries and on the spawning grounds, and scales collected from natural-origin spawner carcasses, we reconstructed the life history of hatchery and natural-origin cohorts from 2002-2015 brood years. Hatchery fish had similar age-2 maturation rates but higher age-3 maturation rates compared to natural-origin fish, resulting in fewer age-4 individuals and an overall more truncated age structure. Because natural-origin winter-run Chinook salmon were more likely to remain at sea until age 4, they were exposed to fishing for an additional year and experienced greater reduction in escapement. Compared to natural-origin males, hatchery-origin males were much less likely to return at an older age, possibly because sexual selection that is occurring on the spawning grounds is not occurring to the same extent in the hatchery. Identifying how reproductive maturation differs across sources, sex, and life histories is critical to understanding how fisheries can disproportionately impact subsets of a population and affect its long-term population dynamics and sustainability.",
@@ -46,6 +119,55 @@
             "title": "Age structure of natural versus hatchery-origin endangered chinook salmon and implications for fisheries management in california",
             "type": "article-journal",
             "volume": "723"
+        },
+        {
+            "author": [
+                {
+                    "family": "Muthén",
+                    "given": "Linda K"
+                },
+                {
+                    "family": "Muthén",
+                    "given": "Bengt O"
+                }
+            ],
+            "container-title": "Structural equation modeling",
+            "id": "Muthn2002",
+            "issued": {
+                "date-parts": [
+                    [
+                        2002
+                    ]
+                ]
+            },
+            "page": "599-620",
+            "title": "How to use a monte carlo study to decide on sample size and determine power",
+            "type": "article-journal"
+        },
+        {
+            "author": [
+                {
+                    "family": "Wang",
+                    "given": "Y Andre"
+                },
+                {
+                    "family": "Rhemtulla",
+                    "given": "Mijke"
+                }
+            ],
+            "container-title": "Advances in Methods and Practices in Psychological Science",
+            "id": "Wang2021",
+            "issued": {
+                "date-parts": [
+                    [
+                        2021,
+                        1
+                    ]
+                ]
+            },
+            "title": "Power analysis for parameter estimation in structural equation modeling: A discussion and tutorial",
+            "title-short": "Power analysis for parameter estimation in structural equation modeling",
+            "type": "article-journal"
         }
     ],
     "project_biblios": []

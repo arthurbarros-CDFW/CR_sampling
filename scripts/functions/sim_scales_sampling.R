@@ -22,13 +22,16 @@
 #' intervals of natural-origin age class estimates produced from 
 #' iterations bootstrapping. Default 0.95.
 #' 
-#' @return 
+#' @return a list with four outputs, the est_summary_stats table, the 
+#' true_summary_stats table, the scales_collected value, and the boot_results
+#' list.
 
 sim_scales_sampling<-function(pop,
                               spawning_results,
                       iterations=1000,
                       scales_n,
                       CI=0.95){
+  #set.seed(67)
     
   #get dataframe of all untagged fish recovered
   #these are the fish we can get scales from
@@ -71,9 +74,9 @@ sim_scales_sampling<-function(pop,
     if(length(hatchery_ages_split)==0){
       age<-c(2,3,4)
       N<-total_tags<-total_hatchery<-c(0,0,0)
-      iterations=c(j,j,j)
+      k_iteration=c(j,j,j)
       
-      tagged_ages_boot<-data.table(age,N,total_tags,total_hatchery,iterations)
+      tagged_ages_boot<-data.table(age,N,total_tags,total_hatchery,k_iteration)
     }else{
       #get tagged ages for this iteration using same k_iteration
       tagged_ages_boot <- as.data.table(hatchery_ages_split[[j]])
@@ -143,8 +146,10 @@ sim_scales_sampling<-function(pop,
     #calculate estimate of natural origin fish in pop at each age
     age_counts[, total_natural := untagged_age_total - untagged_hatchery]
     
-    age_counts<-age_counts%>%
-      mutate(total_natural=ifelse(total_natural<0,0,total_natural))
+    #truncating counts<0
+    #age_counts<-age_counts%>%
+    #  mutate(total_natural=ifelse(total_natural<0,0,total_natural))
+    #commented this out on purpose
     
     #calculate estimate of proportion of origin fish in pop at each age
     total_natural_sum <- sum(age_counts$total_natural)
@@ -154,6 +159,9 @@ sim_scales_sampling<-function(pop,
       age_counts[, natural_proportions := 0]
     })
     
+    
+    age_counts<-age_counts%>%
+      mutate(k_iteration=ifelse(is.na(k_iteration),j,k_iteration))
     #save age results in boot_results list
     boot_results[[j]] <- as.data.frame(age_counts)
   }
@@ -227,7 +235,8 @@ sim_scales_sampling<-function(pop,
   
   results<-list("est_summary_stats"=age_summary_stats,
                 "true_summary_stats"=true_summary_stats,
-                "scales_collected"=scales_n)
+                "scales_collected"=scales_n,
+                "boot_results"=boot_results)
   return(results)
 }
 

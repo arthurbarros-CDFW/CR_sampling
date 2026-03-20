@@ -18,7 +18,7 @@ sim_summary_stats<-function(data){
     mutate(count_bias=mean_count_natural-true_count_natural,
            prop_bias=mean_proportion_natural-true_proportion_natural,
            count_moe=(upper_CI_count-lower_CI_count)/2,
-           count_moe_relative=count_moe/mean_count_natural,
+           count_moe_relative=count_moe/true_count_natural,
            prop_moe=(upper_CI_prop-lower_CI_prop)/2)
   d_stats<-select(d_stats,age,
                   count_bias,prop_bias,

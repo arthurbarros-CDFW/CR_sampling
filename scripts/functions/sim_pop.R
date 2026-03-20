@@ -11,8 +11,7 @@
 #' 
 #' @param ages range of potential returning adult ages
 #'
-#' @param age_probs probability seed for ages. Note: should I add variation 
-#' between natural and hatchery-origin fish?
+#' @param age_probs probability seed for ages.
 #'
 #' @return a simulated population of adult returns with fish ID, origin,
 #' age, hatchery source if applicable, and if tag present

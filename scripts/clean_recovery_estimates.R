@@ -1,4 +1,5 @@
 #clean and format location recovery data produced by E. Chen
+#data source: https://github.com/echenfishbitch/SRFC-cohort-reconstruction-wNF
 rm( list = ls()) #clear env
 #data simulations
 library(tidyverse)
@@ -45,7 +46,7 @@ all_dt_long <- melt(all_dt,
                     variable.name = "age_class",
                     value.name = "count")
 
-#get age from the age_class column (remove "Age" and "Sp")
+#get age from the age_class column
 all_dt_long[, age := as.numeric(gsub("Age|Sp", "", age_class))]
 
 #calculate return_year

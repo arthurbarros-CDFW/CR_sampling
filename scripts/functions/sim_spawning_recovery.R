@@ -15,7 +15,7 @@
 #' @param iterations number of draws from negative-binomial distribution to 
 #' estimate k, where k~NB(1,theta).
 #' 
-#' @param tag_rate 
+#' @param tag_rate cwt tagging rate of hatchery-origin fish
 #' 
 #' @return a list with 1) 'recovered_fish' a dataframe of recovered/sampled fish 
 #' from the simulated population and 2) 'hatchery_ages' a dataframe of estimates 

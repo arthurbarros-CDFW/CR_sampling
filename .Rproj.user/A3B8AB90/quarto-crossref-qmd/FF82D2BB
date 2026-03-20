@@ -2,10 +2,171 @@
     "entries": [
         {
             "file": "CR sampling.qmd",
-            "type": "fig",
-            "id": "pbt_MOE",
+            "type": "eq",
+            "id": "total_untagged",
             "suffix": "",
-            "title": "Curve showing how MOE by sample size n."
+            "title": ""
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "false_positives",
+            "suffix": "",
+            "title": "Percentage of simulation iterations that result in a false positive estimate of natural-origin age-classes."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "wpooling_coverage",
+            "suffix": "",
+            "title": "Percent of iterations at each scale sample size in which the true basin wide population value was within 95% confidence intervals."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "eq",
+            "id": "basin_natural_age",
+            "suffix": "",
+            "title": ""
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "sec",
+            "id": "simulate-fish-recovery",
+            "suffix": "",
+            "title": "Simulate fish recovery"
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "sim_pct_moe",
+            "suffix": "",
+            "title": "Percentage of simulation iterations that met target MOE of 20% for natural-origin age-class proportion estimates by scale sample size."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "sim_theta_moe",
+            "suffix": "",
+            "title": "Percentage of simulation iterations that met target MOE of 20% by theta."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "wpooling_results2",
+            "suffix": "",
+            "title": "Count and proportional margin of error with 95% confidence intervals "
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "wpooling_results1",
+            "suffix": "",
+            "title": "Count and proportional estimates with 95% confidence intervals "
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "nopooling_bias",
+            "suffix": "",
+            "title": "Bias in each age-class abundance estimate by target scale sample size for each location."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "nopooling_results",
+            "suffix": "",
+            "title": "Count estimates with 95% confidence intervals "
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "theta_range",
+            "suffix": "",
+            "title": "Theta values from 2010 to 2020 for survey locations."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "eq",
+            "id": "total_untagged_hatchery",
+            "suffix": "",
+            "title": ""
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "wpooling_bias",
+            "suffix": "",
+            "title": "Bias in each age-class abundance estimate by target scale sample size for each location."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "nopooling_loc_results",
+            "suffix": "",
+            "title": "Count estimates with 95% confidence intervals "
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "false_negatives",
+            "suffix": "",
+            "title": "Percentage of simulation iterations that result in a false positive estimate of natural-origin age-classes."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "eq",
+            "id": "natural_estimate",
+            "suffix": "",
+            "title": ""
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "sim_results",
+            "suffix": "",
+            "title": "Count and proportional estimates with 95% confidence intervals "
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "nopooling_coverage",
+            "suffix": "",
+            "title": "Percent of iterations at each scale sample size in which the true basin wide population value was within 95% confidence intervals."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "coverage_probability",
+            "suffix": "",
+            "title": "Percent of iterations at each scale sample size in which the true population value was within 95% confidence intervals."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "eq",
+            "id": "hatchery_tags_available",
+            "suffix": "",
+            "title": ""
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "nopooling_iterations",
+            "suffix": "",
+            "title": "Basin wide abundance estimate margin of error across target scale sample sizes for each age class. Error bars represent 95% confidence intervals."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "fig",
+            "id": "nopooling_recovery_ratios",
+            "suffix": "",
+            "title": "Proportion of escapement and recovered fish coming from each location. Red circles show the proportion of basin wide escapement represented by that survey location, black triangles show the proportion of basin wide fish recoveries available at that location. This represents basin population simulated by iter=1 and year=2012."
+        },
+        {
+            "file": "CR sampling.qmd",
+            "type": "eq",
+            "id": "total_untagged_age",
+            "suffix": "",
+            "title": ""
         }
     ]
 }

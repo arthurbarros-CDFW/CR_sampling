@@ -235,8 +235,8 @@ sim_scales_sampling<-function(pop,
   
   results<-list("est_summary_stats"=age_summary_stats,
                 "true_summary_stats"=true_summary_stats,
-                "scales_collected"=scales_n,
-                "boot_results"=boot_results)
+                "scales_collected"=scales_n)#,
+                #"boot_results"=boot_results)
   return(results)
 }
 

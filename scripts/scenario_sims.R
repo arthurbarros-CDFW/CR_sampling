@@ -103,6 +103,58 @@ for(i in 1:boot_replicates){
 }
 saveRDS(theta_results,"outputs/theta_sim_results.Rds")
 test<-readRDS("outputs/theta_sim_results.Rds")
+
+##########################
+#tag rate size run
+##########################
+#simulate population
+N=10000 #true population size
+tagrate_list=seq(0.25,1,.25) #tag rates
+theta=0.2 #fixed theta
+iterations=1000 #k and scale iterations
+scales_n_seq =500
+boot_replicates=100 #times to repeat total simulation
+CI=0.95
+h_prop=.75
+
+tagrate_results<-list()
+for(i in 1:boot_replicates){
+  iter_start<-Sys.time()
+  tagrate_iters<-list()
+  for(t in 1:length(tagrate_list)){
+    
+    #simulate population
+    sim1<-sim_pop(N=N,
+                  tag_rate=tagrate_list[[t]],
+                  h_prop = h_prop)
+    
+    spawning_recoveries<-sim_spawning_recovery(sim1,
+                                               theta=theta,
+                                               tag_rate=tagrate_list[[t]],
+                                               iterations = iterations)
+    
+    scale_results<-sim_scales_sampling(pop=sim1,
+                                       spawning_results=spawning_recoveries,
+                                       scales_n=scales_n_seq,
+                                       iterations = iterations)
+    
+    sim_stats<-sim_summary_stats(scale_results)
+    
+    tagrate_iters[[t]]=list(
+      "scale_results"=scale_results,
+      "sim_stats"=sim_stats
+    )
+  }
+  names(tagrate_iters)=tagrate_list
+  
+  tagrate_results[[i]]=tagrate_iters
+  iter_end<-Sys.time()
+  iter_time<-iter_end-iter_start
+  print(paste("tagrate scenarios, iteration ",i," finished, time: ",round(iter_time,4)))
+}
+saveRDS(tagrate_results,"outputs/tagrate_sim_results.Rds")
+test<-readRDS("outputs/tagrate_sim_results.Rds")
+
 ##########################
 #false negatives run
 ##########################

@@ -18,8 +18,8 @@ set.seed(67) #for reproducibility
 #we can use those age count estimates and join them to get basin wide
 #this is our "do n_scales at each location approach"
 
-iterations=100 #
-scales_n_seq =seq(400,2000,100)
+iterations=1000 #
+scales_n_seq =seq(500,500,100)
 boot_replicates=100 #times to repeat total simulation
 CI=0.95
 h_prop=.75
@@ -37,7 +37,7 @@ for(i in 1:boot_replicates){
   
   #iteration population
   iter_year<-sample(year_list,1)
-  pop<-sim_location_pop(trib_data,i,iter_year)
+  pop<-sim_basin_pop(trib_data,i,iter_year)
   tag_rates<-pop$tag_rates
   
   pop<-pop$iter_pop
@@ -164,7 +164,7 @@ theta_data<-readRDS("data/location_year_theta.Rds")
 year_list<-2010:2020
 
 boot_replicates=100 #times to repeat total simulation
-scales_n_seq =seq(5000,50000,5000)
+scales_n_seq =seq(500,2000,100)
 iter_results<-list()
 pooling_iteration_results<-list()
 iterations=1000
@@ -303,4 +303,100 @@ for(i in 1:boot_replicates){
   pooling_iteration_results[[i]]<-list(
     "scale_iters"=scale_iters)
 }
-saveRDS(pooling_iteration_results,"outputs/basin_results_wpooling_highsamples.Rds")
+saveRDS(pooling_iteration_results,"outputs/basin_results_wpooling_lowsamples.Rds")
+
+##########################
+#with pooling no weighting
+##########################
+trib_data<-readRDS("data/all_returns_clean.Rds")
+theta_data<-readRDS("data/location_year_theta.Rds")
+
+year_list<-2010:2020
+
+boot_replicates=100 #times to repeat total simulation
+scales_n_seq =seq(500,2000,100)
+iter_results<-list()
+pooling_iteration_results<-list()
+iterations=1000
+
+for(i in 1:boot_replicates){
+  iter_start<-Sys.time()
+  
+  #sample population
+  iter_year<-sample(year_list,1)
+  pop<-sim_basin_pop(trib_data,i,iter_year)
+  sim_tag_rates<-pop$tag_rates
+  pop<-pop$iter_pop
+  loc_list<-unique(pop$location)#pull list of sampled locations
+  
+  #spawning recoveries for each location
+  recoveries_list<-list()
+  for(l in 1:length(loc_list)){ #loop recoveries sim for each location
+    iter_loc<-loc_list[l]
+    loc_pop<-pop%>%filter(location==iter_loc) #get pop data for locaiton
+    
+    target_theta<-theta_data%>% #get theta for location x year
+      filter(location==iter_loc,
+             return_year==iter_year)
+    if(nrow(target_theta)==0){target_theta=0.2} else{ #if no theta, set default
+      target_theta<-round(target_theta$theta,2)
+    }
+    
+    target_tag_rate<-sim_tag_rates%>%
+      filter(location==iter_loc,
+             year==iter_year,
+             origin=="hatchery")
+    target_tag_rate<-target_tag_rate$tag_rate
+    if(is.null(target_tag_rate)){target_tag_rate=0.25}
+    
+    #get spawning recoveries
+    spawning_recoveries<-sim_spawning_recovery(loc_pop,
+                                               theta=target_theta,
+                                               tag_rate=target_tag_rate,
+                                               iterations=iterations)
+    spawning_recoveries$recovered_fish$theta=target_theta
+    recoveries_list[[l]]<-spawning_recoveries
+  }
+  names(recoveries_list)<-loc_list
+  
+  all_recovered_fish<-all_hatchery_estimates<-data.frame()
+  
+  for(l in 1:length(recoveries_list)){
+    all_recovered_fish<-all_recovered_fish%>%
+      rbind(recoveries_list[[l]]$recovered_fish)
+    all_hatchery_estimates<-all_hatchery_estimates%>%
+      rbind(recoveries_list[[l]]$hatchery_ages)       
+  }
+  
+  setDT(all_hatchery_estimates)
+  basin_hatchery_estimates <- all_hatchery_estimates[, .(
+    N = sum(N),
+    total_tags = sum(total_tags),
+    total_hatchery = sum(total_hatchery)
+  ), by = .(age, k_iteration)]
+  
+  #pre-alocate scale_iters list
+  scale_iters <- vector("list", length(scales_n_seq))
+  names(scale_iters) <- scales_n_seq
+  basin_spawning_results<-list("recovered_fish"=all_recovered_fish,
+                               "hatchery_ages"=basin_hatchery_estimates)
+  
+  for(scales_idx in 1:length(scales_n_seq)) {
+    current_scales_n=scales_n_seq[[scales_idx]]
+    
+    basin_sim_result<-sim_scales_sampling(
+      pop=pop,
+      spawning_results = basin_spawning_results,
+      iterations=iterations,
+      scales_n=current_scales_n)
+    
+    basin_sim_result$target_scales_n<-current_scales_n
+    scale_iters[[scales_idx]]<-basin_sim_result
+  }
+  names(scale_iters)<-scales_n_seq
+  print(paste(i, round(Sys.time()-iter_start,4)))
+  
+  pooling_iteration_results[[i]]<-list(
+    "scale_iters"=scale_iters)
+}
+saveRDS(pooling_iteration_results,"outputs/basin_results_wpooling_noweighting.Rds")

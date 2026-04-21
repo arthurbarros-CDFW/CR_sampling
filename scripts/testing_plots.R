@@ -8,7 +8,8 @@ library(gtools)
 library(gridExtra)
 #Load functions
 sapply(list.files("scripts/functions", pattern = "\\.R$", full.names = TRUE), source)
-
+target_moe=0.2
+CI=0.95
 
 #########################################
 #approach 1: scales_n
@@ -932,8 +933,8 @@ ggsave(p,file="outputs/approach2_recoveries_props.png",width=8,height=6)
 #################################
 #approach 2:with pooling
 #####################################
-pooling_iterations<-readRDS("outputs/basin_results_wpooling.Rds")
-
+pooling_iterations<-readRDS("outputs/basin_results_wpooling_lowsamples.Rds")
+target_moe=.10
 pooling_estimates<-data.frame()
 for(i in 1:length(pooling_iterations)){
   d<-pooling_iterations[[i]]
@@ -995,7 +996,7 @@ pooling_stats<-pooling_estimates%>%
   )
 
 p1<-ggplot(data=pooling_stats,
-           aes(x=factor(scales_collected),y=mean_prop_moe))+
+           aes(x=(scales_collected),y=mean_prop_moe))+
   geom_point( size=3, aes(color=factor(age)))+
   geom_errorbar(data=pooling_stats,
                 aes(ymin = lower_CI_prop_moe, 
@@ -1003,6 +1004,8 @@ p1<-ggplot(data=pooling_stats,
                     color=factor(age),
                     linetype= factor(age)), 
                 width = 0.2) +
+  scale_x_continuous(limits=c(100,1000),
+                     breaks=seq(from=100,to=1000,by=200))+
   theme_bw()+
   labs(x = "basin scale samples", y = "proportion estimate MOE",color="Age",linetype="Age")+
   theme(strip.background = element_blank(),
@@ -1011,7 +1014,7 @@ p1<-ggplot(data=pooling_stats,
   facet_grid(factor(age)~.)
 p1
 p2<-ggplot(data=pooling_stats,
-           aes(x=factor(scales_collected),y=mean_prop_bias))+
+           aes(x=(scales_collected),y=mean_prop_bias))+
   geom_point( size=3, aes(color=factor(age)))+
   geom_errorbar(data=pooling_stats,
                 aes(ymin = lower_CI_prop_bias, 
@@ -1020,6 +1023,8 @@ p2<-ggplot(data=pooling_stats,
                     linetype= factor(age)), 
                 width = 0.2) +
   theme_bw()+
+  scale_x_continuous(limits=c(100,1000),
+                     breaks=seq(from=100,to=1000,by=200))+
   labs(x = "basin scale samples", y = "proportion estimate bias",color="Age",linetype="Age")+
   theme(strip.background = element_blank(),
         strip.text.y = element_blank(),
@@ -1038,6 +1043,8 @@ p3<-ggplot(data=pooling_stats,
   labs(x = "basin scale samples", y = "proportion estimate coverage",color="Age",linetype="Age")+
   theme(strip.background = element_blank(),
         strip.text.y = element_blank())+
+  scale_x_continuous(limits=c(100,1000),
+                     breaks=seq(from=100,to=1000,by=200))+
   facet_grid(factor(age)~.)
 p3
 p<-grid.arrange(p1,p2,p3, nrow = 1)
@@ -1797,9 +1804,9 @@ for(o in 1:10){
   
 }
 
-############
+########################
 #unweighted scale sampling
-
+########################
 scales_n_seq =seq(1000,5000,1000)
 scale_iters <- vector("list", length(scales_n_seq))
 names(scale_iters) <- scales_n_seq
@@ -1840,3 +1847,143 @@ ggplot(unweighted_sampling,aes(x=factor(age),y=mean_count_natural))+
 
 
 
+
+
+#################################
+#with pooling tag_rate 100
+#####################################
+pooling_iterations<-readRDS("outputs/basin_results_wpooling_tagrate100.Rds")
+target_moe=0.20
+CI=0.95
+pooling_estimates<-data.frame()
+for(i in 1:length(pooling_iterations)){
+  d<-pooling_iterations[[i]]
+  for(s in 1:length(d$scale_iters)){
+    ds<-d$scale_iters[[s]]
+    ds$est_summary_stats$scales_collected=ds$target_scales_n
+    ds$est_summary_stats$true_count_natural=ds$true_summary_stats$true_count_natural
+    ds$est_summary_stats$true_count_hatchery=ds$true_summary_stats$true_count_hatchery
+    ds$est_summary_stats$true_proportion_natural=ds$true_summary_stats$true_proportion_natural
+    pooling_estimates<-pooling_estimates%>%rbind(ds$est_summary_stats)
+  }
+}
+
+pooling_estimates<-pooling_estimates%>%
+  mutate(moe_count=(upper_CI_count-lower_CI_count)/2,
+         moe_count_relative=ifelse(true_count_natural == 0, NA, 
+                                   moe_count / true_count_natural),
+         moe_prop=(upper_CI_prop-lower_CI_prop)/2,
+         meets_target_moe_prop=ifelse(moe_prop<=target_moe,T,F),
+         meets_target_moe_count=ifelse(moe_count_relative<=target_moe,T,F),
+         coverage_count=ifelse(true_count_natural>=lower_CI_count &
+                                 true_count_natural<=upper_CI_count,1,0),
+         coverage_proportion=ifelse(true_proportion_natural>=lower_CI_prop &
+                                      true_proportion_natural<=upper_CI_prop,1,0),
+         count_bias=mean_count_natural-true_count_natural,
+         hatchery_count_bias=mean_count_hatchery-true_count_hatchery,
+         rel_count_bias=count_bias/true_count_natural,
+         rel_hatchery_bias=hatchery_count_bias/true_count_hatchery,
+         prop_bias=mean_proportion_natural-true_proportion_natural
+  )
+
+
+pooling_stats<-pooling_estimates%>%
+  group_by(age,scales_collected)%>%
+  summarize(
+    mean_scales_collected=mean(scales_collected),
+    mean_prop_moe=mean(moe_prop, na.rm = TRUE),
+    lower_CI_prop_moe=quantile(moe_prop, probs = (1-CI)/2, 
+                               na.rm = TRUE),
+    upper_CI_prop_moe=quantile(moe_prop, probs = 1-(1-CI)/2, 
+                               na.rm = TRUE),
+    lower_CI_count_moe=quantile(moe_count_relative, probs = (1-CI)/2, 
+                                na.rm = TRUE),
+    upper_CI_count_moe=quantile(moe_count_relative, probs = 1-(1-CI)/2, 
+                                na.rm = TRUE),
+    mean_count_moe=mean(moe_count_relative,na.rm=TRUE),
+    pct_meeting_target_prop_moe = mean(meets_target_moe_prop) * 100,
+    pct_meeting_target_count_moe = mean(meets_target_moe_count) * 100,
+    pct_count_coverage=mean(coverage_count),
+    pct_prop_coverage=mean(coverage_proportion),
+    mean_count_bias=mean(rel_count_bias,na.rm=TRUE),
+    mean_hatchery_bias=mean(rel_hatchery_bias,na.rm=TRUE),
+    mean_prop_bias=mean(prop_bias,na.rm=T),
+    lower_CI_prop_bias=quantile(prop_bias, probs = (1-CI)/2, 
+                                na.rm = TRUE),
+    upper_CI_prop_bias=quantile(prop_bias, probs = 1-(1-CI)/2, 
+                                na.rm = TRUE),
+    lower_CI_count_bias=quantile(rel_count_bias, probs = (1-CI)/2, 
+                                 na.rm = TRUE),
+    upper_CI_count_bias=quantile(rel_count_bias, probs = 1-(1-CI)/2, 
+                                 na.rm = TRUE),
+    .groups = "drop"
+  )
+
+p1<-ggplot(data=pooling_stats,
+           aes(x=(scales_collected),y=mean_prop_moe))+
+  geom_point( size=3, aes(color=factor(age)))+
+  geom_errorbar(data=pooling_stats,
+                aes(ymin = lower_CI_prop_moe, 
+                    ymax = upper_CI_prop_moe,
+                    color=factor(age),
+                    linetype= factor(age)), 
+                width = 0.2) +
+  scale_x_continuous(limits=c(100,1000),
+                     breaks=seq(from=100,to=1000,by=200))+
+  theme_bw()+
+  labs(x = "basin scale samples", y = "proportion MOE",color="Age",linetype="Age")+
+  theme(strip.background = element_blank(),
+        strip.text.y = element_blank(),
+        legend.position = "none")+
+  facet_grid(factor(age)~.)
+p1
+p2<-ggplot(data=pooling_stats,
+           aes(x=(scales_collected),y=mean_prop_bias))+
+  geom_point( size=3, aes(color=factor(age)))+
+  geom_errorbar(data=pooling_stats,
+                aes(ymin = lower_CI_prop_bias, 
+                    ymax = upper_CI_prop_bias,
+                    color=factor(age),
+                    linetype= factor(age)), 
+                width = 0.2) +
+  scale_x_continuous(limits=c(100,1000),
+                     breaks=seq(from=100,to=1000,by=200))+
+  theme_bw()+
+  labs(x = "basin scale samples", y = "proportional bias",color="Age",linetype="Age")+
+  theme(strip.background = element_blank(),
+        strip.text.y = element_blank(),
+        legend.position = "none")+
+  facet_grid(factor(age)~.)
+p2
+p3<-ggplot(data=pooling_stats,
+           aes(x=(scales_collected),y=pct_prop_coverage*100,
+               color = factor(age),
+               linetype= factor(age)))+
+  geom_point()+
+  geom_line()+
+  theme_bw()+
+  scale_x_continuous(limits=c(100,1000),
+                     breaks=seq(from=100,to=1000,by=200))+
+  scale_y_continuous(limits=c(0,100),
+                     breaks=seq(from=0,to=100,by=20))+
+  labs(x = "basin scale samples", y = "proportional coverage",color="Age",linetype="Age")+
+  theme(strip.background = element_blank(),
+        strip.text.y = element_blank())+
+  facet_grid(factor(age)~.)
+p3
+p<-grid.arrange(p1,p2,p3, nrow = 1)
+ggsave(p,file="outputs/approach2_wpooling_tagrate100.png",width=10,height=6)
+
+p4<-ggplot(data=pooling_stats,
+           aes(x=(scales_collected),y=mean_hatchery_bias))+
+  geom_point( size=3, aes(color=factor(age)))+
+  
+  scale_x_continuous(limits=c(100,1000),
+                     breaks=seq(from=100,to=1000,by=200))+
+  theme_bw()+
+  labs(x = "basin scale samples", y = "hatchery bias",color="Age",linetype="Age")+
+  theme(strip.background = element_blank(),
+        strip.text.y = element_blank(),
+        legend.position = "none")+
+  facet_grid(factor(age)~.)
+p4

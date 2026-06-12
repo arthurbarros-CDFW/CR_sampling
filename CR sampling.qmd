@@ -1,5 +1,5 @@
 ---
-title: "Cohort Reconstruction Sampling"
+title: "Cohort Reconstruction Scale Sampling"
 author: 
   name: "Arthur Barros"
   email: "Arthur.Barros@wildlife.ca.gov"
@@ -40,13 +40,13 @@ knitr::opts_chunk$set(
 
 Accurate estimates of age-specific natural-origin escapement are essential for cohort reconstruction (CR) of Sacramento River fall-run Chinook Salmon (SFCS). This methods document uses Monte Carlo simulations to address two sampling questions: (1) how many scales are needed to estimate natural-origin age-class proportions or abundances, and (2) whether pooling scales across the basin is preferable to sampling a fixed number from each location.
 
-The simulations demonstrate that pooling scale samples with weighting by escapement contribution outperforms the alternative method of estimating age-class abundance for each location independently and summing results. The pooling method requires fewer total scales for aging, achieves higher coverage of true values, and exhibits lower bias. False negatives (failing to detect an age class when present) are rare, but false positives (estimating presence where none exists) occurs frequently due to uncertainty in hatchery abundance estimates. Based on the results of the Monte Carlo simulations I recommend adopting an approach of pooling scales to produce one basin-wide estimate, ensuring that scale sample sizes are allocated proportionally to each location's contribution to total escapement.
+The simulations demonstrate that pooling scale samples with weighting by contribution to untagged escapement outperforms the alternative method of estimating age-class abundance for each location independently and summing results. The pooling method requires fewer total scales for aging, achieves higher coverage of true values, and exhibits lower bias. False negatives (failing to detect an age class when present) are rare, but false positives (estimating presence where none exists) occur frequently due to uncertainty in hatchery abundance estimates. Based on the results of the Monte Carlo simulations I recommend adopting an approach of pooling scales to produce one basin-wide estimate, ensuring that scale sample sizes are allocated proportionally to each location's contribution to total escapement.
 
 ## [Introduction]{.underline}
 
-Efforts to implement age-structured cohort reconstruction (CR) of Sacramento River fall-run Chinook Salmon (SFCS) populations are under way. The currently used Sacramento Index (SI) serves as an age-aggregated index of adult ocean abundance and potential adult escapement [@Chen2024], and the CR aims to update this method by reporting age-specific assessments with estimates of uncertainty. Accurate estimates of age-specific escapement of the natural- and hatchery-origin components are necessary to accurately estimate the maturation rates, mortality rates, and rates of exploitation utilized in the CR. The hatchery-origin component of escapement is estimated using coded-wire-tag (CWT) rates, but the natural-origin component is reconstructed using scale age data collected from untagged fish. Scale aging can be labor-intensive and requires substantial time and training to be done accurately. This document aims to show how many scales should be aged to inform CR efforts in the Sacramento River basin and provide evidence to support the most efficient method of sampling scales.
+Efforts to implement age-structured cohort reconstruction (CR) of Sacramento River fall-run Chinook Salmon (SFCS) populations are under way. The currently used Sacramento Index (SI) serves as an age-aggregated index of adult ocean abundance and potential adult escapement [@Chen2024]. The CR efforts aims to update this method by reporting age-specific assessments with estimates of uncertainty. Accurate estimates of age-specific escapement of the natural- and hatchery-origin components are necessary to accurately estimate maturation rates, mortality rates, and rates of exploitation. The hatchery-origin component of escapement is estimated using coded-wire-tag (CWT) rates, but the natural-origin component is reconstructed using scale age data collected from untagged fish. Scale aging can be labor-intensive and requires substantial time and training to be done accurately. This document aims to show how many scales should be aged to inform CR efforts in the Sacramento River basin and provide evidence to support the most efficient method of sampling and aging scales.
 
-Here I provide an overview of the methods used to estimate the number of scales required to accurately estimate the abundance of each age-class of natural-origin Sacramento River fall-run Chinook Salmon (SFCS). The analysis I review here is in response to two questions from the Scales/CWT subgroup supporting efforts to implement CR efforts in the Sacramento River basin but I also aim to expand upon those questions and give sampling suggestions.
+Here I provide an overview of the methods used to estimate the number of scales required to accurately estimate the abundance of each age-class of natural-origin Sacramento River fall-run Chinook Salmon (SFCS). The analysis I review here is in response to two questions from the Scales/CWT subgroup supporting efforts to implement CR in the Sacramento River basin, but I also aim to expand upon those questions and give sampling suggestions.
 
 My code scripts and documentation are written in the R language. Throughout this document, various chunks of R code will be presented in the following format:
 
@@ -54,7 +54,7 @@ My code scripts and documentation are written in the R language. Throughout this
 print("hello reader")
 ```
 
-These chunks are designed for users to copy and paste, or rewrite entirely, into their own R scripts to replicate the methods. Additionally, the code used in this document relies on the following R packages: `tidyverse`, `ggplot2`, `data.table`, `gtools`, and `gridExtra`. Code for all the functions, related data cleaning, and simulation run scripts can be found at <https://github.com/arthurbarros-CDFW/CR_sampling>.
+These chunks are designed for users to be able to copy and paste, or rewrite entirely, into their own R scripts to replicate the methods. Additionally, the code used in this document relies on the following R packages: `tidyverse`, `ggplot2`, `data.table`, `gtools`, and `gridExtra`. Code for all the functions, related data cleaning, and simulations, can be found at <https://github.com/arthurbarros-CDFW/CR_sampling>.
 
 ## [Sampling questions]{.underline}
 
@@ -66,21 +66,23 @@ At the December 2025 CR Scale Aging workshop, two questions were put to the grou
 
 In addition to these two questions, I've also highlighted sub-questions that relate to the above:
 
--   **Q1**: How many scale samples are needed to achieve a margin-of-error (MOE) in 95% of simulations/trials? MOE targets ensure sample sizes will inform CR estimates with reasonable confidence.
+- **Q1**: How many scale samples are needed to achieve a margin-of-error (MOE) in 95% of simulations/trials? MOE targets ensure sample sizes will inform CR estimates with reasonable confidence.
 
--   **Q1**: How many are needed to minimize the number of false positives (estimating the presence of an age-class when none occurs) for a natural-origin age-class?
+- **Q1**: How many are needed to minimize the number of false positives (estimating the presence of an age-class when none occurs) for a natural-origin age-class?
 
--   **Q1**: How many are needed to minimize the number of false negatives (failing to estimate the presence of an age-class when they are available)?
+- **Q1**: How many are needed to minimize the number of false negatives (failing to estimate the presence of an age-class when they are available)?
 
--   **Q2**: What are the assumptions of pooling samples across the basin for aging, and what could be lost with this approach?
+- **Q2**: What are the assumptions of pooling samples across the basin for aging, and what could be lost with this approach?
+
+- **Q2:** Could we provide some minimum number of scales to collect for each survey location to aim for?
 
 ## [Review of Cohort Reconstruction Methods]{.underline}
 
 Escapement to a given survey location includes marked and CWT tagged hatchery-origin fish, unmarked and (presumed) untagged hatchery-origin fish, and unmarked and untagged natural-origin fish. To estimate the abundances of each of these escapement populations at a given survey location Emily Chen et. al. [@Chen2024] take the following steps:
 
-1.  First, for each CWT recovered, the estimate of the number of tagged fish present but unrecovered $k$ is drawn from a negative binomial distribution $k\sim NB(1,\theta)$ where $\theta$ is the sampling fraction of the survey, or the recovery probability of the tag.
+1.  First, for each CWT recovered, the estimate of the number of tagged fish present but unrecovered ($k$) is drawn from a negative binomial distribution $k\sim NB(1,\theta)$ where $\theta$ is the sampling fraction of the survey, or the recovery probability of the tag.
 
-2.  For each recovered tag of an age-class $a$, $k+1$ is the estimated number of tagged fish present per tag. The estimate of total abundance of hatchery-origin fish with tags $\hat{N}_{CWT,a}$ in the escapement population is:
+2.  For each recovered tag of an age-class $a$, $k+1$ is the estimated number of tagged fish present (recovered and unrecovered) per tag $t$. The estimate of total abundance of hatchery-origin fish with tags ($\hat{N}_{CWT,a}$) in the escapement population is:
 
     $$\hat{N}_{CWT,a}=\sum_{t=1}^j(k_{t,a}+1)$$ {#eq-hatchery_tags_available}
 
@@ -88,19 +90,17 @@ Escapement to a given survey location includes marked and CWT tagged hatchery-or
 
 4.  The abundance of untagged fish in the population is estimated as:
 
-    $$
-    \hat{N}_{NO-CWT}=\hat{N}-\hat{N}_{CWT}
-    $$ {#eq-total_untagged}
+    $$\hat{N}_{NO-CWT}=\hat{N}-\hat{N}_{CWT}$$ {#eq-total_untagged}
 
-5.  Scale ages of unmarked fish recovered at the survey location are used to estimate the age composition of unmarked escapement. For each age-class $a$, we can:
+5.  Scale ages of untagged fish recovered at the survey location are used to estimate the age composition of unmarked escapement. For each age-class $a$, we can:
 
-    -   calculate the number of untagged fish scales from that scale sample ($n_{NO-CWT,a}$).
+    - calculate the number of untagged fish scales from the scale sample for each age ($n_{NO-CWT,a}$).
 
-    -   calculate the proportion of untagged fish scales from that cohort ($p_{NO-CWT,a}$).
+    - calculate the proportion of untagged fish scales from that age/cohort ($p_{NO-CWT,a}$).
 
-    -   estimate the total number of untagged fish in the population $\hat{N}_{NO-CWT,a}$ from that cohort: $$\hat{N}_{NO-CWT,a}=\hat{N}_{NO-CWT}*p_{NO-CWT,a}$$ {#eq-total_untagged_age}
+    - estimate the total number of untagged fish in the population $\hat{N}_{NO-CWT,a}$ from that cohort: $$\hat{N}_{NO-CWT,a}=\hat{N}_{NO-CWT}*p_{NO-CWT,a}$$ {#eq-total_untagged_age}
 
-6.  The estimate of the number of untagged hatchery-origin fish is done as:
+6.  The estimate of the number of untagged hatchery-origin fish is calculated as:
 
     $$\hat{N}_{NO-CWT,ho,a}=\hat{N}_{ho,a}-\hat{N}_{CWT,a}$$ {#eq-total_untagged_hatchery}
 
@@ -108,27 +108,25 @@ Finally, the estimate of the abundance of natural-origin fish at each age-class 
 
 $$\hat{N}_{no,a}=\hat{N}_{NO-CWT,a}-\hat{N}_{NO-CWT,ho,a}$$ {#eq-natural_estimate}
 
-Chen et. al. then take these estimates of hatchery-origin fish $\hat{N}_{ho,a}$ and natural-origin fish $\hat{N}_{no,a}$ for each age-class at each survey location and sum them together to create Sacramento River basin estimates of escapement for each cohort:
+Chen et. al. then take these estimates of hatchery-origin fish $\hat{N}_{ho,a}$ and natural-origin fish $\hat{N}_{no,a}$ for each age-class at each survey location ($l$) and sums them together to create Sacramento River basin estimates of escapement for each cohort:
 
-$$
-\hat{N}_{basin,no,a}=\sum_{l=1}^j\hat{N}_{l,no,a}
-$$ {#eq-basin_natural_age}
+$$\hat{N}_{basin,no,a}=\sum_{l=1}^j\hat{N}_{l,no,a}$$ {#eq-basin_natural_age}
 
-The above CR methodology requires collecting scale samples from tributary spawning grounds across the Sacramento River basin incorporates uncertainty from several sources:
+The above CR methodology requires collecting scale samples from tributary spawning grounds across the Sacramento River basin and incorporates uncertainty from several sources:
 
--   Fish recovery rate ( $\theta$ ) - The sampling fraction of the survey, or probability of recovering the tag of a given fish. This is derived from the "estimated number' reported in RMIS.
+- Fish recovery rate ( $\theta$ ) - The sampling fraction of the survey, or probability of recovering the tag of a given fish. This is derived from the "estimated number' reported in RMIS.
 
--   Tag rate expansion ($F_{prod}$) - The tag rate expansion method used to estimate number of all hatchery-origin fish in the population (tagged and untagged).
+- Tag rate expansion ($F_{prod}$) - The tag rate expansion method used to estimate number of all hatchery-origin fish in the population (tagged and untagged).
 
--   Scale subsampling ($n_{NO-CWT}$) - The number of scales sampled from the untagged recovered fish for aging. Scales that are sampled can be bootstrapped by redrawing with replacement (typically 1000 iterations) to characterize sampling uncertainty.
+- Scale subsampling ($n_{NO-CWT}$) - The number of scales sampled from the untagged recovered fish for aging. Scales that are sampled can be bootstrapped by redrawing with replacement (typically 1000 iterations) to characterize sampling uncertainty.
 
 There are two other sources of uncertainty that are either not dealt with in the CR methods, or not dealt with in my analysis:
 
--   Escapement estimates ($\hat{N}$) - Estimates of total SFCS in natural spawning grounds are reported as point estimates in GrandTab, but there is significant uncertainty in these estimates generated by the Cormack-Jolly-Seber mark-recapture models. This uncertainty is not incorporated in the current CR methods and is beyond the scope of this analysis, but could be expanded upon in the future.
+- Escapement estimates ($\hat{N}$) - Estimates of total SFCS in natural spawning grounds are reported as point estimates in GrandTab, but there is significant uncertainty in these estimates generated by the Cormack-Jolly-Seber mark-recapture models. This uncertainty is not incorporated in the current CR methods and is beyond the scope of this analysis, but could be expanded upon in the future.
 
--   Scale aging bias and correction - The age distribution of spawners is corrected using a confusion matrix developed by comparing read age from scales from fish with known date of birth from CWT. The scale aging confusion matrix would be standard across methods and it's omission doesn't affect relative comparisons across sampling stages.
+- Scale aging bias and correction - The age distribution of spawners is corrected using a confusion matrix developed by comparing read age from scales from fish with known date of birth from CWT. The scale aging confusion matrix would be standard across methods and it's omission doesn't affect relative comparisons across sampling strategies.
 
-The multiple steps and sources of uncertainty incorporated in the CR methods mean that there is no closed-form equation readily available to estimate the number of scale samples needed to accurately estimate the size of each age-class of natural-origin SFCS. To address these questions I use a series of Monte Carlo simulations that vary sample size, effort ($\theta$), and sampling strategy (pooling and no-pooling) to replicate the proposed sampling methods and evaluate their performance.
+The multiple steps and sources of uncertainty incorporated in the CR methods mean that there is no closed-form equation readily available to estimate the number of scale samples needed to accurately estimate the size of each age-class of natural-origin SFCS. To address these questions I use a series of Monte Carlo simulations that vary scale sample size ($n$), effort ($\theta$), and sampling strategy (pooling and no-pooling) to replicate the proposed sampling methods and evaluate their performance.
 
 ## [Monte Carlo Simulations]{.underline}
 
@@ -150,11 +148,11 @@ The analysis proceeds in two stages. First, I use simple theoretical populations
 
 **Approach 1: simulating hypothetical known populations.**
 
--   This first approach simulates completely theoretical escapement populations for a single location, runs sampling efforts to simulate fish and scale recovery, and the estimates the abundance of natural-origin fish at each age-class in the total escapement population. The sampling estimates are then compared to the generated true values to test accuracy, error, and coverage. This method is then repeated across different scenarios to better understand how various parameters such as sample size and $\theta$ impact the estimates.
+- This first approach simulates theoretical escapement populations for a single location, runs sampling efforts to simulate fish and scale recovery, and estimates the abundance of natural-origin fish at each age-class in the total escapement population. The sampling estimates are then compared to the generated true values to test accuracy, error, and coverage. This method is then repeated across different scenarios to better understand how various parameters such as sample size and $\theta$ impact the estimates.
 
 **Approach 2: simulating Sacramento River basin populations.**
 
--   The second approach utilizes actual estimates of hatchery and natural-origin age-specific abundance for Sacramento River basin spawning grounds and hatcheries produced by Emily Chen [@Chen2024] available on GitHub (<https://github.com/echenfishbitch/SRFC-cohort-reconstruction-wNF>). These estimates are used to simulate basin-wide populations, and then random sampling is performed replicating the methods in approach 1. I then compare the method of basin-wide population estimation used by Emily Chen (@eq-basin_natural_age) to the alternative method of pooling scales across survey locations and randomly sampling from the pool. This addresses the point brought up by sampling question 2.
+- The second approach utilizes actual estimates of hatchery and natural-origin age-specific abundance for Sacramento River basin spawning grounds and hatcheries produced by Emily Chen [@Chen2024] available on GitHub (<https://github.com/echenfishbitch/SRFC-cohort-reconstruction-wNF>). These estimates are used to simulate basin-wide populations, and then random sampling is performed, replicating the methods in approach 1. I then compare the method of basin-wide population estimation used by Emily Chen (@eq-basin_natural_age) to an alternative method of pooling scales across survey locations and randomly sampling from the pool. This addresses sampling question 2.
 
 All Monte Carlo simulations were run on a HP ProBook 640 G5 and took between 2 to 6 hours to process.
 
@@ -173,7 +171,7 @@ sapply(list.files("scripts/functions", pattern = "\\.R$", full.names = TRUE), so
 
 ### *Approach 1: simulating theoretical populations*
 
-I have produced functions in R that run many of the steps involved in the Monte Carlo simulations. These functions are available on the project GitHub repository under the `scripts/functions/` folder.
+I have produced functions in R that run many of the steps involved in the Monte Carlo simulations. These functions are available on the project GitHub repository under the `scripts/functions/` folder. I won't replicate the functions in their entirety here, but will review them below.
 
 #### Simulate a known population
 
@@ -181,21 +179,21 @@ The first function simulates a theoretical SFCS population for sampling with use
 
 `sim_pop()` - simulates a theoretical population using specific user inputs for parameters:
 
--   `N` = true abundance.
+- `N` = true abundance.
 
--   `h_prop` = proportion of population of hatchery origin fish. Default 0.75.
+- `h_prop` = proportion of population of hatchery origin fish. Default 0.75.
 
--   `tag_rate` = hatchery-origin fish tag rate ($F_{prod}$). Default 0.25.
+- `tag_rate` = hatchery-origin fish tag rate ($F_{prod}$). Default 0.25.
 
--   `ages` = possible fish ages. Default ages 2, 3, and 4.
+- `ages` = possible fish ages. Default ages 2, 3, and 4+.
 
--   `age_probs` = fixed proportions of each age-class. Default 0.15, 0.60, 0.25.
+- `age_probs` = fixed proportions of each age-class. Default 0.15, 0.60, 0.25.
 
--   `random_age_probs`=whether to add random "noise" to age probabilities. Default TRUE.
+- `random_age_probs`=whether to add random "noise" to age probabilities. Default TRUE.
 
--   `age_var_origin` = whether to use different probabilities for hatchery vs natural origin fish. Default TRUE.
+- `age_var_origin` = whether to use different probabilities for hatchery vs natural origin fish. Default TRUE.
 
--   `age_dirichlet_concentration` = Dirichlet concentration value to use to add random noise to age probabilities. By default, `sim_pop()` introduces random variation in age composition between hatchery- and natural-origin fish using a Dirichlet distribution. Default 100.
+- `age_dirichlet_concentration` = Dirichlet concentration value to add random noise to age probabilities. By default, `sim_pop()` introduces random variation in age composition between hatchery- and natural-origin fish using a Dirichlet distribution. Default 100.
 
 We can run a simple call of `sim_pop()` and see the below output `sim1`: a simulated population of 10,000 returning SFCS, a data frame with each record representing a fish, it's origin, age, and whether or not is has a CWT.
 
@@ -208,15 +206,15 @@ head(sim1)
 
 Now that we've generated a simulated population, we can simulate the recovery of fish for a survey effort. Over a given spawning period some portion of the escapement will be recovered, which can be characterized with $\theta$. This process is implemented in the `sim_spawning_recovery()` function and the following inputs:
 
--   `sim_population` = the data frame of the simulated population.
+- `sim_population` = the data frame of the simulated population.
 
--   `theta` ($\theta$)= the probability of recovering a given fish, or the sampling fraction. Default 0.20.
+- `theta` ($\theta$)= the probability of recovering a given fish, or the sampling fraction. Default 0.20.
 
--   `tag_rate` = hatchery-origin fish tag rate ($F_{prod}$). Default 0.25.
+- `tag_rate` = hatchery-origin fish tag rate ($F_{prod}$). Default 0.25.
 
--   `iterations` = number of draws from a negative-binomial distribution to estimate $k$, where $k\sim NB(1,\theta)$. Default 1000.
+- `iterations` = number of draws from a negative-binomial distribution to estimate $k$, where $k\sim NB(1,\theta)$. Default 1000.
 
-We can use the default values to simulate a spawning recoverey event below.
+We can use the default values to simulate a spawning recovery event below.
 
 ```{r, sim_spawning_recovery1}
 spawning_recoveries <- sim_spawning_recovery(sim_population = sim1)
@@ -233,15 +231,15 @@ The second output is the `hatchery_ages` data frame, with estimates of the total
 
 The repetitive iterations help characterize the uncertainty of our hatchery-origin estimate ($\hat{N}_{CWT,a}$) due to $\theta$. The table has number of records equal to the number of age-classes $a$ times the number of $k$ iterations, and contains the following fields:
 
--   `age` = target age-class of hatchery-origin fish.
+- `age` = target age-class of hatchery-origin fish.
 
--   `N` = the number of recovered fish with tags for each age-class.
+- `N` = the number of recovered fish with tags for each age-class.
 
--   `total_tags` = the estimate of the total number of fish with tags in the population for that age-class. $k+1$ is the estimate of the number of tagged fish available for each tag recovered @eq-hatchery_tags_available.
+- `total_tags` = the estimate of the total number of fish with tags in the population for that age-class. $k+1$ is the estimate of the number of tagged fish available for each tag recovered @eq-hatchery_tags_available.
 
--   `total_hatchery` ($\hat{N}_{ho,a}$) = is the estimate of total abundance of hatchery-origin fish for each age-class in the population, estimated as $\hat{N}_{CWT,a} * F{prod}$ .
+- `total_hatchery` ($\hat{N}_{ho,a}$) = is the estimate of total abundance of hatchery-origin fish for each age-class in the population, estimated as $\hat{N}_{CWT,a} * F{prod}$ .
 
--   `k_iteration` = is the number of the $k$-draw iteration.
+- `k_iteration` = is the number of the $k$-draw iteration.
 
 ```{r, sim_spawning_recovery3}
 #show table of estimates of hatchery origin fish
@@ -254,15 +252,15 @@ For a given age-class, the variation in `total_hatchery` across k_iterations ref
 
 We can now pass the fish "recovered" and our estimates of hatchery-origin abundance for each age-class onto the workhorse function `sim_scales_sampling.R`. This function simulates sampling of scales from recovered fish, bootstraps scale samples to characterize uncertainty, and produces estimates of natural-origin abundance for each age-class, along with associated uncertainty metrics. The inputs for `sim_scale_sampling()` are:
 
--   `pop` = the simulated population data frame produced by `sim_pop()`.
+- `pop` = the simulated population data frame produced by `sim_pop()`.
 
--   `spawning_results` = the output of the `sim_spawning_recovery()` function. Must be a list with two data frames: `spawning_recoveries$recovered_fish` and `spawning_recoveries$hatchery_ages`.
+- `spawning_results` = the output of the `sim_spawning_recovery()` function. Must be a list with two data frames: `spawning_recoveries$recovered_fish` and `spawning_recoveries$hatchery_ages`.
 
--   `iterations` = number of draws from a negative-binomial distribution to estimate k, where $k\sim NB(1,\theta)$. Default 1000. In this function also the number of iterations to bootstrap resampling of the scale subsample to characterize scale sampling uncertainty.
+- `iterations` = number of draws from a negative-binomial distribution to estimate k, where $k\sim NB(1,\theta)$. Default 1000. In this function also the number of iterations to bootstrap resampling of the scale subsample to characterize scale sampling uncertainty.
 
--   `scales_n` = number of scale samples to collect and "age" from recovered fish. For this example we simulate collecting 500 scales.
+- `scales_n` = number of scale samples to collect and "age" from recovered fish. For this example we simulate collecting 500 scales.
 
--   `CI` = confidence level used to calculate upper and lower confidence intervals of natural-origin age-class estimates produced from scale `iterations` bootstrapping. Default 0.95.
+- `CI` = confidence level used to calculate upper and lower confidence intervals of natural-origin age-class estimates produced from scale `iterations` bootstrapping. Default 0.95.
 
 Running the function below with the default values and our simulated population and recoveries typically takes between 15 - 30 seconds on a standard workstation. It's useful to time how long this process can take as it will be repeated many times over different scenarios later in the analysis.
 
@@ -283,15 +281,15 @@ The `sim_scales_sampling()` function starts by selecting a random sample of unta
 
 3.  Estimate the total number of fish without tags in population as $\hat{N}_{NO-CWT}$ @eq-total_untagged.
 
-    -   Note: for our simulations $\hat{N}$ is a known value from our simulation. In real surveys this value is a point estimate from carcass surveys with unreported uncertainty.
+    - Note: for our simulations $\hat{N}$ is a known value from our simulation. In real surveys this value is a point estimate from carcass surveys with unreported uncertainty.
 
 4.  For each cohort $a$ in the boot iteration:
 
-    -   calculate the number of untagged fish scales from that cohort ($n_{NO-CWT,a}$).
+    - calculate the number of untagged fish scales from that cohort ($n_{NO-CWT,a}$).
 
-    -   calculate the proportion of untagged fish scales from that cohort ($p_{NO-CWT,a}$).
+    - calculate the proportion of untagged fish scales from that cohort ($p_{NO-CWT,a}$).
 
-    -   estimate the total number of untagged fish in the populations from that cohort $\hat{N}_{NO-CWT,a}$ @eq-total_untagged_age .
+    - estimate the total number of untagged fish in the populations from that cohort $\hat{N}_{NO-CWT,a}$ @eq-total_untagged_age .
 
 5.  Merge the untagged age-class estimates with the hatchery-origin estimates by age-class.
 
@@ -301,9 +299,7 @@ The `sim_scales_sampling()` function starts by selecting a random sample of unta
 
 8.  Estimate the proportions of natural-origin fish at each age-class ($\hat{p}_{NO,a}$). This is the proportion of the natural-origin population in each age-class, so that:
 
-    $$
-    \sum_{a=1}^j\hat{p}_{NO,a}=1
-    $$
+    $$\sum_{a=1}^j\hat{p}_{NO,a}=1$$
 
 The results from each iteration are then used to produce summary statistics: mean proportions and abundances of each age-class of natural- and hatchery-origin fish, standard deviations, and lower and upper confidence intervals. Finally the function extracts the true age-class proportions and abundances from the simulated population.
 
@@ -315,23 +311,23 @@ str(scale_results$est_summary_stats)
 
 The `est_summary_stats` table contains the following fields:
 
--   `age` = target age-class of fish.
+- `age` = target age-class of fish.
 
--   `mean_count_hatchery` = the mean abundance of hatchery-origin fish for each age-class $\hat{N}_{ho,a}$ across bootstrapping iterations.
+- `mean_count_hatchery` = the mean abundance of hatchery-origin fish for each age-class $\hat{N}_{ho,a}$ across bootstrapping iterations.
 
--   `mean_count_natural` = the mean of abundance of natural-origin fish for each age-class $\hat{N}_{no,a}$ from bootstrapping iterations.
+- `mean_count_natural` = the mean of abundance of natural-origin fish for each age-class $\hat{N}_{no,a}$ from bootstrapping iterations.
 
--   `mean_proportion_natural` = the mean proportion of natural-origin fish at each age-class $\hat{p}_{no,a}$.
+- `mean_proportion_natural` = the mean proportion of natural-origin fish at each age-class $\hat{p}_{no,a}$.
 
--   `sd_proportion_natural` = the standard deviation of the proportion of natural-origin fish at each age-class.
+- `sd_proportion_natural` = the standard deviation of the proportion of natural-origin fish at each age-class.
 
--   `se_proportion_natural` = the standard error of the proportion of natural-origin fish at each age-class.
+- `se_proportion_natural` = the standard error of the proportion of natural-origin fish at each age-class.
 
--   `lower_CI_prop` and `upper_CI_prop` = the upper and lower confidence intervals of our natural-origin age-class proportion estimates.
+- `lower_CI_prop` and `upper_CI_prop` = the upper and lower confidence intervals of our natural-origin age-class proportion estimates.
 
--   `lower_CI_count` and `upper_CI_count` = the upper and lower confidence intervals of our natural-origin age-class count estimates.
+- `lower_CI_count` and `upper_CI_count` = the upper and lower confidence intervals of our natural-origin age-class count estimates.
 
--   `n_iterations` = the number of bootstrapping iterations performed.
+- `n_iterations` = the number of bootstrapping iterations performed.
 
 In some bootstrap iterations, Equation @eq-natural_estimate yields negative values for natural-origin abundance, particularly for rarer age classes. E. Chen et al. [@Chen2024] also runs into this issue and truncates the estimates to zero. In this implementation, negative estimates are retained (not truncated) to avoid introducing upward bias, though this can inflate the apparent uncertainty.
 
@@ -817,11 +813,11 @@ First, we need to simulate our different populations across the basin. This time
 
 The `sim_basin_pop()` function simulates a population by taking random draws from the distribution of age-class abundance estimates produced by Emily Chen's work (<https://github.com/echenfishbitch/SRFC-cohort-reconstruction-wNF>). It requires the following inputs:
 
--   `data` = a cleaned and formatted data set of survey based estimates containing distributions of age-class abundance estimates for each spawning ground or hatchery and each year, as well as tag rates. Data is formatted in the `clean_recovery_estimates.R` script to transform from brood year estimates to age-class estimates.
+- `data` = a cleaned and formatted data set of survey based estimates containing distributions of age-class abundance estimates for each spawning ground or hatchery and each year, as well as tag rates. Data is formatted in the `clean_recovery_estimates.R` script to transform from brood year estimates to age-class estimates.
 
--   `iter` = index of which estimate iteration to pull from, this is used when bootstrapping across available data for uncertainty.
+- `iter` = index of which estimate iteration to pull from, this is used when bootstrapping across available data for uncertainty.
 
--   `year` = the target year for which population data will be pulled.
+- `year` = the target year for which population data will be pulled.
 
 Before running an example of `sim_basin_pop()`, we can examine the input abundance estimate data here:
 

@@ -16,6 +16,22 @@
 sim_basin_pop<-function(data,iter,year){ 
   
   d<-data%>%filter(iteration==iter,return_year==year)
+  d<-d%>%mutate(brood_year=return_year-age)
+  
+  d<-d%>%rename(tag_age=age)
+  
+  tag_list<-unique(select(d,brood_year,tag_rate,location,tag_age,return_year))
+  
+  #get location props for year
+  loc_props<-d%>%
+    group_by(location,brood_year)%>%
+    summarise(count=sum(count))
+  loc_props <- loc_props %>%
+    group_by(brood_year) %>%
+    mutate(proportion = count / sum(count)) %>%
+    ungroup()
+  loc_props<-loc_props%>%
+    select(-count)
   
   expand_fish_efficient <- function(dt) {
     dt_nonzero <- dt[count > 0]
@@ -25,7 +41,7 @@ sim_basin_pop<-function(data,iter,year){
       data.table(
         return_year = rep(row$return_year, row$count),
         location = rep(row$location, row$count),
-        age = rep(row$age, row$count),
+        tag_age = rep(row$tag_age, row$count),
         tag_rate = rep(row$tag_rate, row$count),
         origin = rep(row$origin, row$count)
       )
@@ -34,20 +50,39 @@ sim_basin_pop<-function(data,iter,year){
   }
   
   iter_pop<-expand_fish_efficient(d)
+
+  #loc tag rates?
+  loc_tag_rates<-unique(select(iter_pop,tag_age,tag_rate,origin,location,return_year))
+  loc_tag_rates<-loc_tag_rates%>%
+    mutate(brood_year=return_year-tag_age,
+           brood_location=location)%>%
+    filter(origin=="hatchery")%>%
+    group_by(brood_year,brood_location)%>%
+    summarise(tag_rate=mean(tag_rate))%>%
+    select(brood_year,brood_location,tag_rate)
+  
+  #add brood location and year to iter_pop
   iter_pop<-iter_pop%>%
-    mutate(tag_rate=round(tag_rate,2))
+    mutate(brood_year=return_year-tag_age)
+
+  assign_brood_location <- function(row, props_df) {
+    if (runif(1) < 0.9) {
+      return(row$location)
+    } else {
+      #get location proportions
+      year_props <- props_df[props_df$brood_year == row$brood_year, ]
+      return(sample(year_props$location, size = 1, prob = year_props$proportion))
+    }
+  }
   
-  #we need to standardize the tag_rate for year x location combos,
-  #it is biasing our simulation?
-  iter_tag_rates<-unique(select(iter_pop,age,tag_rate,origin,location))
-  iter_tag_rates<-iter_tag_rates%>%
-    group_by(location,origin)%>%
-    summarize(tag_rate=mean(tag_rate))
+  iter_pop$brood_location <- apply(iter_pop, 1, function(row) {
+    assign_brood_location(as.list(row), loc_props)
+  })
   
-  iter_tag_rates$year=year
-  
-  iter_pop<-select(iter_pop,-tag_rate)%>%
-    left_join(iter_tag_rates)
+  iter_pop<-iter_pop%>%
+    select(-tag_rate)%>%
+    left_join(loc_tag_rates)
+  iter_pop$tag_rate[is.na(iter_pop$tag_rate)] <- .25
   
   iter_pop<-iter_pop%>%
     mutate(has_cwt=ifelse(
@@ -56,13 +91,16 @@ sim_basin_pop<-function(data,iter,year){
       0
     ))
   
-  iter_pop<-select(iter_pop,-tag_rate)
-  
   iter_pop<-iter_pop%>%
     mutate(fish_id=1:nrow(iter_pop))%>%
     filter(return_year==year)
   
-  results<-list("iter_pop"=iter_pop,
-                "tag_rates"=iter_tag_rates)
+  #add CWT UID
+  iter_pop<-iter_pop%>%
+    mutate(release_group=ifelse(has_cwt==1,paste(brood_location,brood_year),NA),
+           tag_rate=ifelse(origin=="hatchery",tag_rate,NA))%>%
+    mutate(tag_age=ifelse(has_cwt==0,NA,tag_age))
+  
+  results<-list("iter_pop"=iter_pop)
   return(results)
 }

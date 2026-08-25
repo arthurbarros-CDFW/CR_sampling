@@ -53,7 +53,7 @@ all_dt_long[, age := as.numeric(gsub("Age|Sp", "", age_class))]
 all_dt_long[, return_year := brood_year + age]
 
 nattie_trib_returns<- all_dt_long[, .(count = sum(count)), 
-                                  by = .(iteration, location, return_year,age)]
+                                  by = .(iteration, location, return_year,brood_year,age)]
 nattie_trib_returns$origin<-"natural"
 
 nattie_trib_returns<-nattie_trib_returns%>%
@@ -194,14 +194,16 @@ hatch_trib_returns<-hatch_trib_returns%>%
   rbind(hatchery_returns_iter)
 
 hatch_trib_returns<-hatch_trib_returns%>%
-  mutate(age=ifelse(age==5,4,age))
+  mutate(age=ifelse(age==5,4,age),
+         brood_year=return_year-age)
 
 #all iterative return estimates
 all_returns<-hatch_trib_returns%>%
   rbind(nattie_trib_returns)
 
 all_returns<-all_returns%>%
-  mutate(count=round(count))
+  mutate(count=round(count),
+         tag_rate=round(tag_rate,2))
 
 #now get and clean theta estimates based on sampling effort (RMIS estimated_number)
 FRH_recoveries<-read.csv("data/echen_outputs/CWTRecoveries FRH.csv")
@@ -244,6 +246,8 @@ FRH_recoveries<-FRH_recoveries%>%
   select(-year_theta)
 
 location_year_theta<-FRH_recoveries
+
+all_returns<-unique(all_returns)
 
 saveRDS(all_returns,"data/all_returns_clean.Rds")
 saveRDS(location_year_theta,"data/location_year_theta.Rds")
